@@ -1,0 +1,12 @@
+[dependencies]
+base = "0.9.3"
+rxmodb = "0.1.4"
+swb = "1.0.0"
+vector = "0.1.2"
+rxmo = "0.1.3"
+sha2 = "0.0.2"
+stableheapbtreemap = "1.3.0"
+certified-http = "0.1.6"
+http-parser = "0.1.0"
+array = "https://github.com/aviate-labs/array.mo#master"
+encoding = "https://github.com/aviate-labs/encoding.mo#master"
