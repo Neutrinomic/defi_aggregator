@@ -34,7 +34,7 @@ import Cycles "mo:base/ExperimentalCycles";
 import Nat32 "mo:base/Nat32";
 import Ogy "./gov/ogy";
 
-// The following code is the first off-chain version of our DeFi aggregator
+// The following code is the first on-chain version of our DeFi aggregator
 // and should be considered a prototype.
 // Our first version was off-chain.
 // The next version will be made once our DAO is deployed and will address some of the shortcomings of this version.
