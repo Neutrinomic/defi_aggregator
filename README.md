@@ -15,3 +15,16 @@ ICDex reports volume in tokens and not USD, which changes price. Then it becomes
 ICPSwap We are currently ****using TVL to determine liquidity (depth -50%). The other way of doing it is complicated and may not even be possible without implementing a good portion of their dex algorithm. Some tokens aren’t tagged to count towards TVL, probably to discourage users from trying to cheat the reward system by filling it with custom coins without value. However, XTC and Ghost don’t count towards it too at the time of writing. Making the stat we are providing not very accurate. We have contacted them and asked for a multi_quote function, which could be used to amend that.
 
 Conclusion: We will need to create a standard for fetching information from DEXes that will work for both order book and AMM DEXes and also for both single and multiple tokens inside one canister. This will ensure the stability of systems relying on such information. The functions we currently use are most likely made to serve the developer’s web apps. We will also need another standard for getting locked & unlocking(optional) tokens from non-SNS contracts.
+
+## Verify build
+
+Run inside dev container using VSCode for safer verification _OR_ install these before you run the command.
+
+```
+npm i -g ic-mops@0.34.2
+npm i -g mocv@1.4.0
+```
+
+```
+./verify.sh
+```
