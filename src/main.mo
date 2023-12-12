@@ -1,5 +1,3 @@
-import Vector "mo:vector";
-import Time "mo:base/Time";
 
 // This canister uses our own implementation of reactive programming in Motoko
 // This makes it possible to send requests to multiple canisters in parallel and process the results as they arrive
@@ -33,6 +31,9 @@ import XRC "./services/xrc";
 import Cycles "mo:base/ExperimentalCycles";
 import Nat32 "mo:base/Nat32";
 import Ogy "./gov/ogy";
+import Vector "mo:vector";
+import Swb "mo:swb";
+import Time "mo:base/Time";
 
 // The following code is the first on-chain version of our DeFi aggregator
 // and should be considered a prototype.
@@ -48,7 +49,7 @@ actor Aggregate {
     type ErrorLine = (Time.Time, Text, Error.ErrorCode, Text);
 
     // Vector to store error logs as they occur in the system
-    let errorStore = Vector.new<ErrorLine>();
+    let errorsLog = Swb.SlidingWindowBuffer<ErrorLine>();
 
     // Structure for storing information about Oracle nodes including performance metrics
     type NodeInfo = {
@@ -516,7 +517,7 @@ actor Aggregate {
     };
 
     // Exports pair data for a given frame and pairId
-    public shared({caller}) func export_pair(f:Frame, from:Time.Time, pairid:Nat, size:Nat) : async [?TickItem] {
+    public shared({caller}) func controller_export_pair(f:Frame, from:Time.Time, pairid:Nat, size:Nat) : async [?TickItem] {
         assert(Principal.isController(caller));
 
         let (ticks, tsec) = f2t(f);
@@ -536,7 +537,7 @@ actor Aggregate {
     };
 
     // Imports pair data for a given frame and pairId
-    public shared({caller}) func import_pair(f:Frame, from:Time.Time, pairid: Nat, data: [?TickItem]) : async () {
+    public shared({caller}) func controller_import_pair(f:Frame, from:Time.Time, pairid: Nat, data: [?TickItem]) : async () {
         assert(Principal.isController(caller));
 
         let (ticks, tsec) = f2t(f);
@@ -862,12 +863,19 @@ actor Aggregate {
 
     // Adds an error to the error log
     private func logErr(desc: Text, e : Error.Error) : () {
-        Vector.add(errorStore, (Time.now(), desc, Error.code(e), Error.message(e)));
+        ignore errorsLog.add((Time.now(), desc, Error.code(e), Error.message(e)));
+        if (errorsLog.len() > 500) {
+            errorsLog.delete(1);
+        };
     };
 
     // Displays the error log entries
-    public query func log_show() : async [ErrorLine] {
-        Vector.toArray(errorStore);
+    public query func log_show() : async [?ErrorLine] {
+        let start = errorsLog.start();
+        let end = errorsLog.end();
+        Array.tabulate(errorsLog.len(), func (i : Nat) : ?ErrorLine {
+            errorsLog.getOpt(start + i);
+        })
     };
 
     let requests = Subject<PairId>();
@@ -1265,7 +1273,7 @@ actor Aggregate {
     };
 
     /// Adds a new oracle node to the system with the given name and principal
-    public shared({caller}) func oracle_add(name:Text, node_principal: Principal) : async Result.Result<(), Text> {
+    public shared({caller}) func controller_oracle_add(name:Text, node_principal: Principal) : async Result.Result<(), Text> {
         assert(Principal.isController(caller));
         let rv = BTree.get(nodes, Principal.compare, node_principal);
         switch(rv) {
@@ -1283,7 +1291,7 @@ actor Aggregate {
         };
     };
 
-    public shared({caller}) func oracle_rem(node_principal: Principal) : async Result.Result<(), Text> {
+    public shared({caller}) func controller_oracle_rem(node_principal: Principal) : async Result.Result<(), Text> {
         assert(Principal.isController(caller));
         let rv = BTree.get(nodes, Principal.compare, node_principal);
         switch(rv) {
