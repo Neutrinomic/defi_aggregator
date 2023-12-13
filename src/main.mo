@@ -203,49 +203,51 @@ actor Aggregate {
 
     stable var last_update = Time.now();
 
-
-   /// Initiates the collection process for a specified token ID
-   public shared({caller}) func controller_collect_token(id : TokenId) : async () {
-        assert(Principal.isController(caller));
-        token_requests.next(id);
+    type AdminCommand = {
+        #token_add: TokenConfig;
+        #token_del: TokenId;
+        #token_set: (TokenId, TokenConfig);
+        #token_collect: TokenId;
+        #pair_add: PairConfig;
+        #pair_del: PairId;
+        #pair_set: (PairId, PairConfig);
     };
 
-    // Allows the controller to add a new token to the system
-    public shared({caller}) func controller_addToken(config : TokenConfig) : async TokenId {
+    // Commands suitable for governance proposals can contain multiple admin commands
+    public shared({caller}) func admin(commands: [AdminCommand]) : async () {
         assert(Principal.isController(caller));
-        let id = Vector.size(tokens);
-        Vector.add(tokens, config);
-        token_requests.next(id);
-        id;
+        for (cmd in commands.vals()) {
+            switch(cmd) {
+                case (#token_add(t)) {
+                        let id = Vector.size(tokens);
+                        Vector.add(tokens, t);
+                        token_requests.next(id);
+                };
+                case (#token_del(id)) {
+                        let tconfig = Vector.get(tokens, id);
+                        Vector.put<TokenConfig>(tokens, id, {tconfig with deleted=true});
+                };
+                case (#token_set(id, t)) {
+                        Vector.put<TokenConfig>(tokens, id, t);
+                };
+                case (#token_collect(id)) {
+                        token_requests.next(id);
+                };
+                case (#pair_add(p)) {
+                        let id = Vector.size(pair_config);
+                        Vector.add(pair_config, p);
+                };
+                case (#pair_del(id)) {
+                        let {config; deleted;tokens} = Vector.get(pair_config, id);
+                        Vector.put<PairConfig>(pair_config, id, {config; tokens; deleted=true});
+                };
+                case (#pair_set(id, p)) {
+                        Vector.put<PairConfig>(pair_config, id, p);
+                };
+            };
+        };
     };
 
-    // Allows the controller to mark a token as deleted in the system
-    public shared({caller}) func controller_deleteToken(id : TokenId) : async () {
-        assert(Principal.isController(caller));
-        let tconfig = Vector.get(tokens, id);
-        Vector.put<TokenConfig>(tokens, id, {tconfig with deleted=true});
-    };
-
-    // Allows the controller to modify the configuration of a token
-    public shared({caller}) func controller_modifyToken(id : TokenId, config:TokenConfig) : async () {
-        assert(Principal.isController(caller));
-        Vector.put<TokenConfig>(tokens, id, config);
-    };
-
-    /// Allows the controller to add a trading pair which then gets retrieved every 5 seconds
-    public shared({caller}) func controller_addPair(config : PairConfig) : async PairId {
-        assert(Principal.isController(caller));
-        let id = Vector.size(pair_config);
-        Vector.add(pair_config, config);
-        id;
-    };
-
-    // Allows the controller to mark a pair as deleted in the system
-    public shared({caller}) func controller_deletePair(pairId : PairId) : async () {
-        assert(Principal.isController(caller));
-        let {config; deleted;tokens} = Vector.get(pair_config, pairId);
-        Vector.put<PairConfig>(pair_config, pairId, {config; tokens; deleted=true});
-    };
 
     // Outputs current token and pair configuration
     public query func get_config() : async {tokens:[TokenConfig]; pairs:[PairConfig]} {

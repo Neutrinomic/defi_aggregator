@@ -48,16 +48,6 @@ module {
         };
 
         let mean2:Mean = sum3 / Float.fromInt(count);
-
-        // // Compute new std
-        // var sum4: Float = 0;
-        // for ( val in s.vals() ) {
-        //     if (val > mean - 2 * std and val < mean + 2 * std) {
-        //         sum4 += (val - mean2) * (val - mean2);
-        //     };
-        // };
-
-        // let std2:Std = Float.sqrt(sum4 / Float.fromInt(count));
         
         (mean2, std)
 
