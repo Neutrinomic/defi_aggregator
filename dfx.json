@@ -19,5 +19,5 @@
     }
   },
   "networks": { "local": { "bind": "127.0.0.1:8080", "type":"ephemeral"}},
-  "dfx": "0.15.2"
+  "dfx": "0.14.1"
 }

@@ -213,9 +213,11 @@ actor Aggregate {
         #pair_set: (PairId, PairConfig);
     };
 
+    let adminPrincipal = Principal.fromText("lovjp-a2s3z-lqgmk-epyel-hshnr-ksdzf-abimc-f7dpu-33z4u-2vbkf-uae");
+
     // Commands suitable for governance proposals can contain multiple admin commands
     public shared({caller}) func admin(commands: [AdminCommand]) : async () {
-        assert(Principal.isController(caller));
+        assert caller == adminPrincipal;
         for (cmd in commands.vals()) {
             switch(cmd) {
                 case (#token_add(t)) {
@@ -520,7 +522,8 @@ actor Aggregate {
 
     // Exports pair data for a given frame and pairId
     public shared({caller}) func controller_export_pair(f:Frame, from:Time.Time, pairid:Nat, size:Nat) : async [?TickItem] {
-        assert(Principal.isController(caller));
+        //assert(Principal.isController(caller));
+        assert caller == adminPrincipal;
 
         let (ticks, tsec) = f2t(f);
         var idx = 0;
@@ -540,7 +543,8 @@ actor Aggregate {
 
     // Imports pair data for a given frame and pairId
     public shared({caller}) func controller_import_pair(f:Frame, from:Time.Time, pairid: Nat, data: [?TickItem]) : async () {
-        assert(Principal.isController(caller));
+        // assert(Principal.isController(caller));
+        assert caller == adminPrincipal;
 
         let (ticks, tsec) = f2t(f);
         let fromTick :Nat = (Int.abs(from) - Int.abs(first_tick)) / (1000000000 * tsec);
@@ -1276,7 +1280,8 @@ actor Aggregate {
 
     /// Adds a new oracle node to the system with the given name and principal
     public shared({caller}) func controller_oracle_add(name:Text, node_principal: Principal) : async Result.Result<(), Text> {
-        assert(Principal.isController(caller));
+        //assert(Principal.isController(caller));
+        assert caller == adminPrincipal;
         let rv = BTree.get(nodes, Principal.compare, node_principal);
         switch(rv) {
             case (null) {
@@ -1294,7 +1299,8 @@ actor Aggregate {
     };
 
     public shared({caller}) func controller_oracle_rem(node_principal: Principal) : async Result.Result<(), Text> {
-        assert(Principal.isController(caller));
+        // assert(Principal.isController(caller));
+        assert caller == adminPrincipal;
         let rv = BTree.get(nodes, Principal.compare, node_principal);
         switch(rv) {
             case (null) #err("Not found");
