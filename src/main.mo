@@ -213,7 +213,7 @@ actor Aggregate {
         #pair_set: (PairId, PairConfig);
     };
 
-    let adminPrincipal = Principal.fromText("lovjp-a2s3z-lqgmk-epyel-hshnr-ksdzf-abimc-f7dpu-33z4u-2vbkf-uae");
+    let adminPrincipal = Principal.fromText("gffpl-zoaxl-xkuwi-llqyr-sjxmw-tvvc7-ei3vs-vxbno-zo5c5-v57d2-2qe");
 
     // Commands suitable for governance proposals can contain multiple admin commands
     public shared({caller}) func admin(commands: [AdminCommand]) : async () {

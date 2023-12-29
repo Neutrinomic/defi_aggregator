@@ -5,12 +5,6 @@
       "candid": "build/main.did",
       "type": "custom",
       "wasm": "build/main.wasm"
-    },
-    "testzone": {
-      "build": "./build.sh",
-      "candid": "build/main.did",
-      "type": "custom",
-      "wasm": "build/main.wasm"
     }
   },
   "defaults": {
