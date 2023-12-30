@@ -2,3 +2,4 @@
 .mops
 build/*
 !build/.gitkeep
+/message.json
