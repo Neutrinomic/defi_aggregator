@@ -1,5 +1,5 @@
 
-Set a temporary operator with the permissions to add and modify tokens. We have to quickly add Neutrinite, Gold Dao, Querio, Trax, and others.
+Big Fix: Debug functions were causing an artificial limit of 30 tokens when it comes to collecting neuron data.
 
 ## Verify build
 

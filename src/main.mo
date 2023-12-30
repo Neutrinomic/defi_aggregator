@@ -144,7 +144,7 @@ actor Aggregate {
     stable let token_ticks_1d = Vector.init<TokenTick>( (Int.abs(Time.now() - first_tick)) / (1000000000 * 60 * 60 * 24) - 1, [var] );
 
     // Debug counter array to track certain operations or events for debugging purposes
-    var dbgCounter : [var Nat] = Array.init<Nat>(30, 0);
+    // var dbgCounter : [var Nat] = Array.init<Nat>(30, 0);
     
     let USD : TokenId = 0;
     let BTC : TokenId = 1;
@@ -1090,7 +1090,7 @@ actor Aggregate {
                     start_page_at = last_id
                 });
 
-                dbgCounter[tokenId] += 1;
+                // dbgCounter[tokenId] += 1;
 
                 label neuronloop for (n in r.neurons.vals()) {
                     var dissolve_time = now;
@@ -1142,7 +1142,7 @@ actor Aggregate {
 
                 last_id := r.neurons[99].id;
 
-                if (idx > 5) {
+                if (idx > 5) { // Collecting only 5 * 100 neurons, the remaining are collected in with another setTimer
                     break scan;
                 };
 
