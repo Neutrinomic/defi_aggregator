@@ -261,17 +261,17 @@ actor Aggregate {
     };
 
     // Sets a config for easier replication when testing
-    public shared ({ caller }) func set_config(
-        cfg : {
-            tokens : [TokenConfig];
-            pairs : [PairConfig];
-        }
-    ) : () {
-        assert caller == adminPrincipal;
+    // public shared ({ caller }) func set_config(
+    //     cfg : {
+    //         tokens : [TokenConfig];
+    //         pairs : [PairConfig];
+    //     }
+    // ) : () {
+    //     assert caller == adminPrincipal;
 
-        Vector.addFromIter(tokens, cfg.tokens.vals());
-        Vector.addFromIter(pair_config, cfg.pairs.vals());
-    };
+    //     Vector.addFromIter(tokens, cfg.tokens.vals());
+    //     Vector.addFromIter(pair_config, cfg.pairs.vals());
+    // };
 
     /// Time frames used for aggregating data: 5 minutes, 1 hour, 1 day
     type Frame = {
