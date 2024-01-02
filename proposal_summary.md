@@ -1,5 +1,7 @@
 
-Big Fix: Debug functions were causing an artificial limit of 30 tokens when it comes to collecting neuron data.
+ICPSwap TVL canister changed from 5zxqs-oaaaa-aaaag-qcd4q-cai to gp26j-lyaaa-aaaag-qck6q-cai
+This will fix the bug where some of the latest ICPSwap pairs don't have all stats aggregated.
+
 
 ## Verify build
 

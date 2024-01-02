@@ -681,7 +681,7 @@ actor Aggregate {
         let root : ICPSwapRoot.Self = actor("ggzvv-5qaaa-aaaag-qck7a-cai");
         let pd = await root.getAllPools();
 
-        let tvlcan : ICPSwap.Self = actor("5zxqs-oaaaa-aaaag-qcd4q-cai");
+        let tvlcan : ICPSwap.Self = actor("gp26j-lyaaa-aaaag-qck6q-cai");
         let tvl = await tvlcan.getAllPoolTvl();
 
 
