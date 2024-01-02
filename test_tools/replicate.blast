@@ -1,0 +1,1 @@
+{"cells":[{"kind":2,"language":"javascript","value":"let prod = await ic(\"u45jl-liaaa-aaaam-abppa-cai\");\n\nlet test = await ic(\"uxafr-vqaaa-aaaak-qcx6a-cai\");\n\nlet config = await prod.get_config();\n\nawait test.set_config(config).then(log);\n\nglobal({test})"},{"kind":2,"language":"javascript","value":"\nawait test.get_config().then(log)"}]}

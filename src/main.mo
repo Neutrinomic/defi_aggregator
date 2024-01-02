@@ -352,6 +352,8 @@ actor Aggregate {
     // Calculates the price between two tokens which may not have a direct pair
     private func tokenPrice(fromid: TokenId, toid: TokenId) : ?TokenPriceOutput {
 
+        
+
         var acc_price : Float = 0;
         var acc_liquidity : Float = 0;
         var liquidity : Float = 0;
@@ -359,6 +361,8 @@ actor Aggregate {
         var buydepth2 : Float = 0;
         var buydepth8 : Float = 0;
         var buydepth50 : Float = 0;
+
+        if (fromid == toid) return ?{price=1:Float; volume; buydepth2; buydepth8; buydepth50};
 
         label pairs for ((pair, pairid) in Vector.items(pair_config)) {
             if (pair.deleted == true) continue pairs;
@@ -748,6 +752,7 @@ actor Aggregate {
 
     };
 
+
     // Remove the depth from a tick
     private func stripDepth(t : TickLast) : TickLast {
         //(PairId, LastBid, LastAsk, Volume24, DepthBid50, DepthAsk50)
@@ -778,6 +783,9 @@ actor Aggregate {
                         x.id == id;
                     }) else continue pairs;
 
+                    let zeroPrice : TokenPriceOutput = {price=0; volume = 0; buydepth2 = 0; buydepth8 = 0; buydepth50 =0};
+
+
                     let volume : Float = switch (
                         Array.find(
                             volumes,
@@ -786,8 +794,11 @@ actor Aggregate {
                             },
                         )
                     ) {
-                        case (?x) Float.fromInt(x.1);
-
+                        case (?x) {
+                            let Icp2Usd = Option.get(tokenPriceTrusted(ICP, USD), zeroPrice);
+                            let token2Icp = Option.get(tokenPrice(pair.tokens.0, ICP), zeroPrice);
+                            (Float.fromInt(x.1 / (10 ** (token_first.decimals - 4))) / (10 ** 4)) * token2Icp.price * Icp2Usd.price;
+                        };
                         case (null) 0 : Float;
                     };
 
@@ -796,6 +807,7 @@ actor Aggregate {
                     
                     let price = (r1 / r0);
                     
+
                     // let liquidity = info.reserve0 / (10 ** token_first.decimals);
                     let liq_buy =(Float.fromInt(info.reserve0) / Float.fromInt(10 ** token_first.decimals))/2;
                     let liq_sell = (Float.fromInt(info.reserve1) / Float.fromInt(10 ** token_second.decimals))/2;
