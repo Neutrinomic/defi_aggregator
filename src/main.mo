@@ -34,6 +34,7 @@ import Ogy "./gov/ogy";
 import Vector "mo:vector";
 import Swb "mo:swb";
 import Time "mo:base/Time";
+import SonicVol "./services/sonicvol";
 
 // The following code is the first on-chain version of our DeFi aggregator
 // and should be considered a prototype.
@@ -257,6 +258,19 @@ actor Aggregate {
             tokens=Vector.toArray(tokens);
             pairs=Vector.toArray(pair_config);
         }
+    };
+
+    // Sets a config for easier replication when testing
+    public shared ({ caller }) func set_config(
+        cfg : {
+            tokens : [TokenConfig];
+            pairs : [PairConfig];
+        }
+    ) : () {
+        assert caller == adminPrincipal;
+
+        Vector.addFromIter(tokens, cfg.tokens.vals());
+        Vector.addFromIter(pair_config, cfg.pairs.vals());
     };
 
     /// Time frames used for aggregating data: 5 minutes, 1 hour, 1 day
@@ -746,6 +760,10 @@ actor Aggregate {
         let root : Sonic.Self = actor("3xwpq-ziaaa-aaaah-qcn4a-cai");
         let pd = await root.getAllPairs();
 
+        let sonicvol : SonicVol.Self = actor ("eld2c-oyaaa-aaaai-qpdra-cai");
+        let volumes = await sonicvol.getPairVolumes();
+
+
         let ft: Time.Time = first_tick;
                     
         label pairs for ((pair, pairid) in Vector.items(pair_config)) {
@@ -760,7 +778,19 @@ actor Aggregate {
                         x.id == id;
                     }) else continue pairs;
 
-                    let volume: Float= 0;
+                    let volume : Float = switch (
+                        Array.find(
+                            volumes,
+                            func(x : (Text, Nat, Nat)) : Bool {
+                                x.0 == id;
+                            },
+                        )
+                    ) {
+                        case (?x) Float.fromInt(x.1);
+
+                        case (null) 0 : Float;
+                    };
+
                     let r0 = Float.fromInt(info.reserve0 / (10 ** (token_first.decimals - 4))); 
                     let r1 = Float.fromInt(info.reserve1 / (10 ** (token_second.decimals - 4)));
                     
