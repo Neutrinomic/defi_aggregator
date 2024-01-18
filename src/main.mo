@@ -559,8 +559,19 @@ actor Aggregate {
         Vector.toArray(rez);
     };
 
+    private func tick_resize_if_needed<A>(arr:[var ?A], newlen: Nat) : [var ?A] {
+            var psize = arr.size();
+            if (newlen <= psize) return arr;
+            
+            let newarr = Array.init<?A>(newlen, null);
+            for (idx in arr.keys()) {
+                newarr[idx] := arr[idx];
+            };
+            newarr;        
+    };
+
     // Imports pair data for a given frame and pairId
-    public shared({caller}) func controller_import_pair(f:Frame, from:Time.Time, pairid: Nat, data: [?TickItem]) : async () {
+    public shared({caller}) func controller_import_pair(f:Frame, from:Time.Time, pairid: Nat, data: [?TickItem], mode:{#add; #overwrite}) : async () {
         // assert(Principal.isController(caller));
         assert caller == adminPrincipal;
 
@@ -570,9 +581,21 @@ actor Aggregate {
         var idx = 0;
         for (t in data.vals()) {
        
-            let tx = Vector.get<Tick>(ticks, fromTick + idx);
-            tx[pairid] := t;
-      
+            // handle the case when there aren't enough pair slots inside the tick
+            var used = tick_resize_if_needed(Vector.get<Tick>(ticks, fromTick + idx), pairid+1);
+            switch(mode) {
+                case (#overwrite) {
+                    used[pairid] := t;
+                    Vector.put<Tick>(ticks, fromTick + idx, used);
+                };
+                case (#add) {
+                    if (Option.isNull(used[pairid])) {
+                        used[pairid] := t;
+                        Vector.put<Tick>(ticks, fromTick + idx, used);
+                    };
+                }
+            };
+
             idx += 1;
         }
     };
