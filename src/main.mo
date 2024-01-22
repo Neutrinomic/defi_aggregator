@@ -437,6 +437,71 @@ actor Aggregate {
         ?{price; volume; buydepth2; buydepth8; buydepth50};
     };
 
+
+    private func tokenPriceArray(fromid: TokenId, toid: TokenId, start: Nat, skip:Nat, tickcount: Nat) : ?[Float] {
+
+        if (fromid == toid) return null;
+        
+        let targetPairs = Vector.new<(PairId, Bool)>();
+
+        label pairs for ((pair, pairid) in Vector.items(pair_config)) {
+            if (pair.deleted == true) continue pairs;
+            switch(pair.config) {
+                case (#oracle(_)) continue pairs;
+                case (_) ();
+            };
+            var rev = false;
+            if ((pair.tokens.0 == fromid and pair.tokens.1 == toid)
+                or (pair.tokens.1 == fromid and pair.tokens.0 == toid)) {
+
+                if (pair.tokens.0 == toid) {
+                    rev := true;
+                };
+                
+            } else {
+                continue pairs;
+            };
+            Vector.add(targetPairs, (pairid, rev));
+        };
+
+        let targetPairsArr = Vector.toArray(targetPairs);
+        if (targetPairsArr.size() == 0) return null;
+
+        ?Array.tabulate<Float>(tickcount, func (i) : Float {
+            tokenPriceAtTick(targetPairsArr, start - i*skip);
+        });
+    };
+
+    // Calculates the price given pairs and tickIdx
+    private func tokenPriceAtTick(pairs:[(PairId, Bool)], tickIdx: Nat) : Float {
+
+        var acc_price : Float = 0;
+        var acc_liquidity : Float = 0;
+
+        label pairs for ((pairid, rev) in pairs.vals()) {
+            switch(getTickItem(tickIdx, pairid)) {
+                case (?t) {
+                    switch(rev) {
+                        case (true) {
+                            acc_price += 1*(1/((t.2 + t.3)/2));
+                            acc_liquidity += 1;
+                        };
+                        case (false) {
+                            acc_price += 1*((t.2 + t.3)/2);
+                            acc_liquidity += 1;
+                        };
+                    };
+                };
+                case (null) {
+                    continue pairs;
+                    };
+                };
+            };
+        
+        acc_price / acc_liquidity;
+
+    };
+
     /// Retrieves the last price tick for a given pair ID within the 5-minute ticks
     /// Searches up to 50 ticks back
     private func findLastPriceTick(id: PairId) : ?TickItem {
@@ -481,6 +546,13 @@ actor Aggregate {
 
     };
     
+
+     private func getTickItem(tickIdx:Nat, id: PairId) : ?TickItem {
+        let t = Vector.get<Tick>(ticks_1h, tickIdx);
+        if (t.size() <= id) return null;
+        t[id];
+    };
+
     // Oracle related variables
     stable var last_oracle_update : Time.Time = Time.now();
 
@@ -1574,6 +1646,49 @@ actor Aggregate {
 
         Vector.toArray(rez);
     };
+    ///
+    type LatestWalletTokens = {
+        latest: [LatestExtendedToken];
+        ticks: [LatestWalletTokenTicks]
+    };
+    type LatestWalletTokenTicks = {
+        from_id: TokenId;
+        to_id: TokenId;
+        t6h: [Float];
+    };
+
+    private func add_token_6h_price_arr(ticks: Vector.Vector<LatestWalletTokenTicks>, from_id:TokenId, to_id:TokenId ) : () {
+        let last:Nat = Vector.size(ticks_1h) - 1;
+
+        let ?tpa = tokenPriceArray(from_id, to_id, last, 6, 28) else return;
+        let icptz : LatestWalletTokenTicks = {
+                from_id = ICP;
+                to_id = USD;
+                t6h = tpa;
+                };
+
+        Vector.add(ticks, icptz);
+    };
+
+    public query func get_latest_wallet_tokens() : async LatestWalletTokens {
+        let ticks = Vector.new<LatestWalletTokenTicks>();
+
+        // Add ICP to USD
+        add_token_6h_price_arr(ticks, ICP, USD);
+        add_token_6h_price_arr(ticks, BTC, USD);
+        add_token_6h_price_arr(ticks, ETH, USD);
+
+        label tloop for ((token, tokenid) in Vector.items(tokens)) {
+            if (tokenid == USD or tokenid == ICP or tokenid == BTC or tokenid == ETH or tokenid == XDR or token.deleted == true) continue tloop;
+            add_token_6h_price_arr(ticks, tokenid, ICP);
+        };
+
+        {
+            latest = get_latest_extended_internal();
+            ticks = Vector.toArray(ticks)
+        }
+    };
+    ///
 
     type LatestExtendedRate = {to_token:TokenId; symbol:Text; rate:Float; volume: Float; depth2:Float; depth8:Float; depth50:Float};
 
@@ -1596,9 +1711,7 @@ actor Aggregate {
         dissolving_1y : Nat;
     };
 
-
-    /// Get the latest extended token information and exchange rates against USD and ICP
-    public query func get_latest_extended() : async [LatestExtendedToken] {
+    private func get_latest_extended_internal() : [LatestExtendedToken] {
 
         let alltokens = Vector.new<LatestExtendedToken>();
 
@@ -1691,6 +1804,11 @@ actor Aggregate {
         };
 
         Vector.toArray(alltokens);
+    };
+
+    /// Get the latest extended token information and exchange rates against USD and ICP
+    public query func get_latest_extended() : async [LatestExtendedToken] {
+        get_latest_extended_internal()
     };
 
     // XRC
