@@ -251,6 +251,17 @@ actor Aggregate {
         };
     };
 
+    system func postupgrade () {
+
+        // Remove 5min tick data older than 7 days
+        var idx = 0;
+        var max:Nat = Vector.size(ticks_5m) - 12*24*7;
+        label cleanup loop {
+            Vector.put<Tick>(ticks_5m, idx, [var]);
+            idx += 1;
+            if (idx > max) break cleanup;
+        }
+    };
 
     // Outputs current token and pair configuration
     public query func get_config() : async {tokens:[TokenConfig]; pairs:[PairConfig]} {
