@@ -251,7 +251,9 @@ actor Aggregate {
         };
     };
 
-    system func postupgrade () {
+    
+
+    private func cleanup_mem() {
 
         // Remove 5min tick data older than 7 days
         var idx = 0;
@@ -262,6 +264,7 @@ actor Aggregate {
             if (idx > max) break cleanup;
         }
     };
+    cleanup_mem();
 
     // Outputs current token and pair configuration
     public query func get_config() : async {tokens:[TokenConfig]; pairs:[PairConfig]} {
