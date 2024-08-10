@@ -1,2 +1,2 @@
 #!/bin/sh
-`mocv bin 0.10.2`/moc `mops sources` src/main.mo --idl -o build/main.wasm
+`mocv bin 0.12.1`/moc `mops sources` src/main.mo --idl --public-metadata candid:service --public-metadata candid:args -o build/main.wasm
