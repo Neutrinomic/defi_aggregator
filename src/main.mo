@@ -1980,7 +1980,7 @@ actor Aggregate {
 
             };
             case (#Err(e)) {
-                logErr("Collecting XRC " # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate"));
+                logErr("Collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate"));
             };
         };
     };
@@ -2002,75 +2002,75 @@ actor Aggregate {
         },
     );
 
-    public type Master = actor {
-        get_config : shared query () -> async {
-            tokens : [TokenConfig];
-            pairs : [PairConfig];
-        };
-        get_pairs : shared query (Frame, [Nat], ?Time.Time, ?Time.Time) -> async GetPairsResult;
-        get_tokens : shared query ([Nat], ?Time.Time, ?Time.Time) -> async GetTokensResult;
-    };
+    // public type Master = actor {
+    //     get_config : shared query () -> async {
+    //         tokens : [TokenConfig];
+    //         pairs : [PairConfig];
+    //     };
+    //     get_pairs : shared query (Frame, [Nat], ?Time.Time, ?Time.Time) -> async GetPairsResult;
+    //     get_tokens : shared query ([Nat], ?Time.Time, ?Time.Time) -> async GetTokensResult;
+    // };
 
-    private func sync_master_internal(from_master : Principal) : async () {
-        let master = actor (Principal.toText(from_master)) : Master;
+    // private func sync_master_internal(from_master : Principal) : async () {
+    //     let master = actor (Principal.toText(from_master)) : Master;
 
-        let cfg = await master.get_config();
-        Vector.clear(tokens);
-        Vector.clear(pair_config);
-        Vector.addFromIter(tokens, cfg.tokens.vals());
-        Vector.addFromIter(pair_config, cfg.pairs.vals());
+    //     let cfg = await master.get_config();
+    //     Vector.clear(tokens);
+    //     Vector.clear(pair_config);
+    //     Vector.addFromIter(tokens, cfg.tokens.vals());
+    //     Vector.addFromIter(pair_config, cfg.pairs.vals());
 
-        // import tokens
-        label token_loop for ((token, tokenid) in Vector.items(tokens)) {
+    //     // import tokens
+    //     label token_loop for ((token, tokenid) in Vector.items(tokens)) {
 
-        };
+    //     };
 
-        // import pairs
-        label pair_loop for ((pair, pairid) in Vector.items(pair_config)) {
-            let from_time = first_tick;
-            let frame : Frame = #t1d;
-            let resp = await master.get_pairs(frame, [pairid], ?from_time, null);
-            switch (resp) {
-                case (#ok({ data })) {
-                    import_pair(frame, from_time, pairid, data[0], #overwrite);
-                };
-                case (_)();
-            };
+    //     // import pairs
+    //     label pair_loop for ((pair, pairid) in Vector.items(pair_config)) {
+    //         let from_time = first_tick;
+    //         let frame : Frame = #t1d;
+    //         let resp = await master.get_pairs(frame, [pairid], ?from_time, null);
+    //         switch (resp) {
+    //             case (#ok({ data })) {
+    //                 import_pair(frame, from_time, pairid, data[0], #overwrite);
+    //             };
+    //             case (_)();
+    //         };
 
-        };
+    //     };
 
-    };
+    // };
 
-    public shared ({ caller }) func sync_master_pair(from_master : Principal, pairid : PairId) : async () {
-        assert (caller == adminPrincipal);
+    // public shared ({ caller }) func sync_master_pair(from_master : Principal, pairid : PairId) : async () {
+    //     assert (caller == adminPrincipal);
 
-        let master = actor (Principal.toText(from_master)) : Master;
+    //     let master = actor (Principal.toText(from_master)) : Master;
 
-        let cfg = await master.get_config();
+    //     let cfg = await master.get_config();
 
-        Vector.clear(tokens);
-        Vector.clear(pair_config);
+    //     Vector.clear(tokens);
+    //     Vector.clear(pair_config);
 
-        Vector.addFromIter(tokens, cfg.tokens.vals());
-        Vector.addFromIter(pair_config, cfg.pairs.vals());
-        let from_time = first_tick;
-        let frame : Frame = #t1d;
-        let resp = await master.get_pairs(frame, [pairid], ?from_time, null);
-        switch (resp) {
-            case (#ok({ data })) {
-                import_pair(frame, from_time, pairid, data[0], #overwrite);
-            };
-            case (_) Debug.trap("Cound't get pair from master");
-        };
-    };
+    //     Vector.addFromIter(tokens, cfg.tokens.vals());
+    //     Vector.addFromIter(pair_config, cfg.pairs.vals());
+    //     let from_time = first_tick;
+    //     let frame : Frame = #t1d;
+    //     let resp = await master.get_pairs(frame, [pairid], ?from_time, null);
+    //     switch (resp) {
+    //         case (#ok({ data })) {
+    //             import_pair(frame, from_time, pairid, data[0], #overwrite);
+    //         };
+    //         case (_) Debug.trap("Cound't get pair from master");
+    //     };
+    // };
 
-    public shared ({ caller }) func sync_master(from_master : Principal) : async () {
-        assert (caller == adminPrincipal);
-        try {
-            await sync_master_internal(from_master);
-        } catch (e) {
-            logErr("master sync err " # Principal.toText(from_master), e);
-        };
-    };
+    // public shared ({ caller }) func sync_master(from_master : Principal) : async () {
+    //     assert (caller == adminPrincipal);
+    //     try {
+    //         await sync_master_internal(from_master);
+    //     } catch (e) {
+    //         logErr("master sync err " # Principal.toText(from_master), e);
+    //     };
+    // };
 
 };
