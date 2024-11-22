@@ -1,5 +1,5 @@
 
-Upgrade DeFi Aggregator canister using the latest Motoko compiler. Usage of timers required adding system capabilities to functions and the RxMo library. Optimize memory usage.
+Optimize memory usage.
 
 ## Verify build
 

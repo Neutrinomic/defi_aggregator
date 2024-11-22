@@ -852,10 +852,11 @@ actor Aggregate {
     private func icpswap() : async () {
 
         let root : ICPSwapRoot.Self = actor ("ggzvv-5qaaa-aaaag-qck7a-cai");
-        let pd = await root.getAllPools();
-
+        let pd_promise = root.getAllPools();
+        
         let tvlcan : ICPSwap.Self = actor ("gp26j-lyaaa-aaaag-qck6q-cai");
         let tvl = await tvlcan.getAllPoolTvl();
+        let pd = await pd_promise;
 
         let ft : Time.Time = first_tick;
         label pairs for ((pair, pairid) in Vector.items(pair_config)) {
@@ -1452,7 +1453,7 @@ actor Aggregate {
 
     /// Sets up a recurring timer to collect pair data every 20 seconds
     ignore Timer.recurringTimer<system>(
-        #seconds 20,
+        #seconds 2,
         func() : async () {
 
             // ICDEX data comes from multiple canisters and therefore is passed to the stream processor
@@ -1980,7 +1981,7 @@ actor Aggregate {
 
             };
             case (#Err(e)) {
-                logErr("Collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate"));
+                logErr("collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate"));
             };
         };
     };
