@@ -1,5 +1,5 @@
 
-Optimize memory usage.
+Restart timers. Optimize memory usage.
 
 ## Verify build
 

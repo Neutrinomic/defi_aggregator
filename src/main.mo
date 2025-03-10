@@ -1471,7 +1471,7 @@ actor Aggregate {
             try {
                 await icpswap();
             } catch e {
-                logErr("collecting icpswap", e);
+                logErr("collecting icpswap_", e);
             };
 
             // Sonic data comes from a single canister
@@ -1502,8 +1502,9 @@ actor Aggregate {
         #too_early;
     };
 
+    public type ControllerOracleAddResp = Result.Result<(), Text>;
     /// Adds a new oracle node to the system with the given name and principal
-    public shared ({ caller }) func controller_oracle_add(name : Text, node_principal : Principal) : async Result.Result<(), Text> {
+    public shared ({ caller }) func controller_oracle_add(name : Text, node_principal : Principal) : async ControllerOracleAddResp {
         //assert(Principal.isController(caller));
         assert caller == adminPrincipal;
         let rv = BTree.get(nodes, Principal.compare, node_principal);
@@ -1522,7 +1523,9 @@ actor Aggregate {
         };
     };
 
-    public shared ({ caller }) func controller_oracle_rem(node_principal : Principal) : async Result.Result<(), Text> {
+    public type ControllerOracleRemResp = Result.Result<(), Text>;
+
+    public shared ({ caller }) func controller_oracle_rem(node_principal : Principal) : async ControllerOracleRemResp {
         // assert(Principal.isController(caller));
         assert caller == adminPrincipal;
         let rv = BTree.get(nodes, Principal.compare, node_principal);
@@ -1981,7 +1984,7 @@ actor Aggregate {
 
             };
             case (#Err(e)) {
-                logErr("collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate"));
+                logErr("collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate."));
             };
         };
     };
