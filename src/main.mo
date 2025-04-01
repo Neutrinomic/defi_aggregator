@@ -1984,7 +1984,7 @@ actor Aggregate {
 
             };
             case (#Err(e)) {
-                logErr("collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate"));
+                logErr("collecting XRC" # base_asset.symbol # "/" # quote_asset.symbol # " " # debug_show (e), Error.reject("Couldn't get rate."));
             };
         };
     };
