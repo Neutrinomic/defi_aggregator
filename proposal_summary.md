@@ -1,5 +1,5 @@
 
-Restart timers. Optimize memory usage.
+Restart timers. Optimize memory usage. Reduce timer frequency.
 
 ## Verify build
 

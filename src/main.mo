@@ -1451,9 +1451,8 @@ actor Aggregate {
         complete = null_func;
     });
 
-    /// Sets up a recurring timer to collect pair data every 20 seconds
     ignore Timer.recurringTimer<system>(
-        #seconds 2,
+        #seconds 60,
         func() : async () {
 
             // ICDEX data comes from multiple canisters and therefore is passed to the stream processor
